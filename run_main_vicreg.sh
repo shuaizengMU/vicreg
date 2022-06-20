@@ -1,0 +1,1 @@
+nohup python -m torch.distributed.launch --nproc_per_node=2 main_vicreg.py  --data-dir  /hdd/zengs_data/vision_data/imagenetmini-1000/new_dataset --epochs 50 > pretrain.out 2>&1 &

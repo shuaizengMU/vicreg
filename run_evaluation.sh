@@ -1,0 +1,2 @@
+# nohup python evaluate.py --data-dir /hdd/zengs_data/vision_data/imagenetmini-1000/new_dataset --pretrained exp/resnet50.pth --exp-dir ./exp --lr-head 0.02 --epochs 100 > training.out 2>&1 &
+nohup python evaluate.py --data-dir /hdd/zengs_data/vision_data/imagenetmini-1000/new_dataset --pretrained exp/resnet50.pth --exp-dir ./exp --lr-head 0.02 --supvised --epochs 1000 > training.out 2>&1 &

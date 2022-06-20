@@ -1,0 +1,1 @@
+nohup python -m torch.distributed.launch --nproc_per_node=2 main_vicreg_mnist.py  --data_dir  /hdd/zengs_data/vision_data > pretrain_mnist.out 2>&1 &
