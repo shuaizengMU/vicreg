@@ -119,7 +119,11 @@ def main(args):
   torch.backends.cudnn.benchmark = True
   init_distributed_mode(args)
   print(args)
-  gpu = torch.device(args.device)
+  
+  if torch.cuda.is_available():
+    gpu = torch.device(args.device)
+  else:
+    gpu = torch.device('cpu')
 
   if args.rank == 0:
     args.exp_dir.mkdir(parents=True, exist_ok=True)
