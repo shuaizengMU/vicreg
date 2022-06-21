@@ -30,22 +30,22 @@ def get_arguments():
       description="Pretrain a resnet model with VICReg", add_help=False)
 
   # Data
-  parser.add_argument("--data_dir",
+  parser.add_argument("--data-dir",
                       type=Path,
-                      default="/hdd/zengs_data/vision_data",
+                      default="/hdd/zengs_data/vision_data/imagenetmini-1000",
                       required=True,
                       help='Path to the image net dataset')
 
   # Checkpoints
   parser.add_argument(
-      "--exp_dir",
+      "--exp-dir",
       type=Path,
-      default="./exp_mnist",
+      default="./exp",
       help=
       'Path to the experiment folder, where all logs/checkpoints will be stored'
   )
   parser.add_argument(
-      "--log_freq_time",
+      "--log-freq-time",
       type=int,
       default=60,
       help='Print logs to the stats.txt file every [log-freq-time] seconds')
@@ -62,10 +62,10 @@ def get_arguments():
   # Optim
   parser.add_argument("--epochs",
                       type=int,
-                      default=100,
+                      default=50,
                       help='Number of epochs')
   parser.add_argument(
-      "--batch_size",
+      "--batch-size",
       type=int,
       # default=2048,
       default=128,
@@ -73,7 +73,7 @@ def get_arguments():
       'Effective batch size (per worker batch size is [batch-size] / world-size)'
   )
   parser.add_argument(
-      "--base_lr",
+      "--base-lr",
       type=float,
       default=0.2,
       help=
@@ -82,64 +82,61 @@ def get_arguments():
   parser.add_argument("--wd", type=float, default=1e-6, help='Weight decay')
 
   # Loss
-  parser.add_argument("--sim_coeff",
+  parser.add_argument("--sim-coeff",
                       type=float,
                       default=25.0,
                       help='Invariance regularization loss coefficient')
-  parser.add_argument("--std_coeff",
+  parser.add_argument("--std-coeff",
                       type=float,
                       default=25.0,
                       help='Variance regularization loss coefficient')
-  parser.add_argument("--cov_coeff",
+  parser.add_argument("--cov-coeff",
                       type=float,
                       default=1.0,
                       help='Covariance regularization loss coefficient')
 
   # Running
-  parser.add_argument("--num_workers", type=int, default=2)
+  parser.add_argument("--num-workers", type=int, default=2)
   parser.add_argument('--device',
                       default='cuda',
                       help='device to use for training / testing')
 
   # Distributed
-  parser.add_argument('--world_size',
-                      default=10,
+  parser.add_argument('--world-size',
+                      default=2,
                       type=int,
                       help='number of distributed processes')
   parser.add_argument('--local_rank', default=-1, type=int)
-  parser.add_argument('--dist_url',
+  parser.add_argument('--dist-url',
                       default='env://',
                       help='url used to set up distributed training')
 
   return parser
 
-# python -m torch.distributed.launch --nproc_per_node=1 main_vicreg_mnist.py --device cpu --data_dir  ./data --rank 0
+# python -m torch.distributed.launch --nproc_per_node=2 main_vicreg.py  --data-dir  /hdd/zengs_data/vision_data/imagenetmini-1000/new_dataset --epochs 100
 
 def main(args):
   
-  torch.backends.openmp.benchmark = True
-  init_distributed_mode(args)
   gpu = torch.device(args.device)
   
-  if args.rank == 0:
-    args.exp_dir.mkdir(parents=True, exist_ok=True)
-    stats_file = open(args.exp_dir / "stats.txt", "a", buffering=1)
-    print(" ".join(sys.argv))
-    print(" ".join(sys.argv), file=stats_file)
+  args.exp_dir.mkdir(parents=True, exist_ok=True)
+  stats_file = open(args.exp_dir / "stats.txt", "a", buffering=1)
+  print(" ".join(sys.argv))
+  print(" ".join(sys.argv), file=stats_file)
 
   # transforms = aug.TrainTransform()
   transforms = aug.TrainTransformMNIST()
 
-  # dataset = datasets.ImageFolder(args.data_dir / "train", transforms)
-  dataset = datasets.MNIST(args.data_dir,
-                           download=True,
-                           train=True,
-                           transform = transforms)
-  sampler = torch.utils.data.distributed.DistributedSampler(dataset,
-                                                            shuffle=True)
+  dataset = datasets.ImageFolder(args.data_dir / "train", transforms)
+  # dataset = datasets.MNIST(args.data_dir,
+  #                          download=True,
+  #                          train=True,
+  #                          transform = transforms)
+  # sampler = torch.utils.data.distributed.DistributedSampler(dataset,
+  #                                                           shuffle=True)
+  sampler = None
 
-  assert args.batch_size % args.world_size == 0
-  per_device_batch_size = args.batch_size // args.world_size
+  per_device_batch_size = args.batch_size
   loader = torch.utils.data.DataLoader(
       dataset,
       batch_size=per_device_batch_size,
@@ -148,17 +145,9 @@ def main(args):
       sampler=sampler,
   )
   
-  # print(111)
-  # print(per_device_batch_size)
-  # for data in loader:
-  #   x, y = data
-  #   print(x[0].shape)
-  #   exit(0)
-  
-
-  model = VICReg(args).cuda(gpu)
-  model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
-  model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
+  model = VICReg(args)
+  # model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
+  # model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
   optimizer = LARS(
       model.parameters(),
       lr=0,
@@ -166,6 +155,7 @@ def main(args):
       weight_decay_filter=exclude_bias_and_norm,
       lars_adaptation_filter=exclude_bias_and_norm,
   )
+  
 
   if (args.exp_dir / "model.pth").is_file():
     if args.rank == 0:
@@ -177,31 +167,23 @@ def main(args):
   else:
     start_epoch = 0
 
-
-
   start_time = last_logging = time.time()
   scaler = torch.cuda.amp.GradScaler()
   for epoch in range(start_epoch, args.epochs):
 
-    
-    sampler.set_epoch(epoch)
+    # sampler.set_epoch(epoch)
     
     for step, ((x, y), _) in enumerate(loader, start=epoch * len(loader)):
-
-      x = x.cuda(gpu, non_blocking=True)
-      y = y.cuda(gpu, non_blocking=True)
       
       lr = adjust_learning_rate(args, optimizer, loader, step)
 
       optimizer.zero_grad()
-      with torch.cuda.amp.autocast():
-        loss = model.forward(x, y)
-      scaler.scale(loss).backward()
-      scaler.step(optimizer)
-      scaler.update()
+      loss = model.forward(x, y)
+      loss.backward()
+      optimizer.step()
 
       current_time = time.time()
-      if args.rank == 0 and current_time - last_logging > args.log_freq_time:
+      if current_time - last_logging > args.log_freq_time:
         stats = dict(
             epoch=epoch,
             step=step,
@@ -212,16 +194,16 @@ def main(args):
         print(json.dumps(stats))
         print(json.dumps(stats), file=stats_file)
         last_logging = current_time
-    if args.rank == 0:
-      state = dict(
-          epoch=epoch + 1,
-          model=model.state_dict(),
-          optimizer=optimizer.state_dict(),
-      )
-      torch.save(state, args.exp_dir / "model.pth")
-  if args.rank == 0:
-    torch.save(model.module.backbone.state_dict(),
-               args.exp_dir / "resnet50.pth")
+
+    state = dict(
+        epoch=epoch + 1,
+        model=model.state_dict(),
+        optimizer=optimizer.state_dict(),
+    )
+    torch.save(state, args.exp_dir / "model.pth")
+
+  torch.save(model.module.backbone.state_dict(),
+             args.exp_dir / "resnet50.pth")
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
@@ -257,8 +239,6 @@ class VICReg(nn.Module):
 
     repr_loss = F.mse_loss(x, y)
 
-    x = torch.cat(FullGatherLayer.apply(x), dim=0)
-    y = torch.cat(FullGatherLayer.apply(y), dim=0)
     x = x - x.mean(dim=0)
     y = y - y.mean(dim=0)
 

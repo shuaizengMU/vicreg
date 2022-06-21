@@ -4,6 +4,10 @@ exp/*.txt
 exp_mnist/*.pth
 exp_mnist/*.txt
 
+cpu_mnist/*.pth
+cpu_mnist/*.txt
+
 __pycache__/*.pyc
 
 *.out
+
