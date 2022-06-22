@@ -29,11 +29,11 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="Pretrain a resnet model with VICReg", add_help=False)
 
     # Data
-    parser.add_argument("--data_dir", type=Path, default="./data/imagenet/train", required=True,
+    parser.add_argument("--data_dir", type=Path, default="./data/ILSVRC2012/imagenet-100", required=True,
                         help='Path to the image net dataset')
 
     # Checkpoints
-    parser.add_argument("--exp_dir", type=Path, default="./exp",
+    parser.add_argument("--exp_dir", type=Path, default="./exp_imagenet_100",
                         help='Path to the experiment folder, where all logs/checkpoints will be stored')
     parser.add_argument("--log_freq_time", type=int, default=60,
                         help='Print logs to the stats.txt file every [log-freq-time] seconds')
@@ -47,7 +47,7 @@ def get_arguments():
     # Optim
     parser.add_argument("--epochs", type=int, default=100,
                         help='Number of epochs')
-    parser.add_argument("--batch-size", type=int, default=2048,
+    parser.add_argument("--batch_size", type=int, default=2048,
                         help='Effective batch size (per worker batch size is [batch-size] / world-size)')
     parser.add_argument("--base_lr", type=float, default=0.2,
                         help='Base learning rate, effective learning after warmup is [base-lr] * [batch-size] / 256')

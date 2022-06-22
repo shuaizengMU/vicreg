@@ -1,0 +1,2 @@
+# python evaluate_original.py --data_dir ./data/ILSVRC2012/imagenet-100 --pretrained ./exp_original/resnet50.pth --exp_dir ./exp_original --lr_head 0.02 --epochs 10
+python evaluate_original.py --data_dir ./data/ILSVRC2012/imagenet-100 --pretrained ./exp_imagenet_100/resnet50.pth --exp_dir ./exp_imagenet_100 --lr_head 0.02 --epochs 10

@@ -1,0 +1,1 @@
+nohup python -m torch.distributed.launch --nproc_per_node=2 main_vicreg_original.py  --data_dir  ./data/ILSVRC2012/imagenet-100 --epochs 50 --batch_size 128 > pretrain_original.out 2>&1 &
