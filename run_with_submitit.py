@@ -29,8 +29,9 @@ def parse_args():
 
 def get_shared_folder() -> Path:
     user = os.getenv("USER")
-    if Path("/checkpoint/").is_dir():
-        p = Path(f"/checkpoint/{user}/vicreg/experiments")
+    shared_dir = "/home/szeng/zengs/code/vicreg/shared_checkpoint"
+    if Path(shared_dir).is_dir():
+        p = Path(f"{shared_dir}/experiments")
         p.mkdir(exist_ok=True)
         return p
     raise RuntimeError("No shared folder available")
@@ -93,11 +94,25 @@ def main():
     if args.comment:
         kwargs['slurm_comment'] = args.comment
 
+    # executor.update_parameters(
+    #     name=args.job_name,
+    #     mem_gb=40 * num_gpus_per_node,
+    #     gpus_per_node=num_gpus_per_node,
+    #     tasks_per_node=num_gpus_per_node,  # one task per GPU
+    #     cpus_per_task=10,
+    #     nodes=nodes,
+    #     timeout_min=timeout_min,  # max is 60 * 72
+    #     # Below are cluster dependent parameters
+    #     slurm_partition=partition,
+    #     slurm_signal_delay_s=120,
+    #     **kwargs
+    # )
+    
     executor.update_parameters(
         name=args.job_name,
-        mem_gb=40 * num_gpus_per_node,
-        gpus_per_node=num_gpus_per_node,
-        tasks_per_node=num_gpus_per_node,  # one task per GPU
+        mem_gb=40 * 2,
+        gpus_per_node=2,
+        tasks_per_node=2,  # one task per GPU
         cpus_per_task=10,
         nodes=nodes,
         timeout_min=timeout_min,  # max is 60 * 72
@@ -106,6 +121,18 @@ def main():
         slurm_signal_delay_s=120,
         **kwargs
     )
+    
+    # executor.update_parameters(
+    #     account='xulab-gpu',
+    #     job_name=args.job_name,
+    #     mem=40 * 2,
+    #     nodes=2,
+    #     ntasks=6,  # one task per GPU
+    #     cpus_per_task=10,
+    #     time='2-00:00', 
+    #     partition='gpu4',
+    #     gres='gpu:6'
+    # )
 
     executor.update_parameters(name="vicreg")
 

@@ -1,1 +1,1 @@
-nohup python -m torch.distributed.launch --nproc_per_node=2 main_vicreg_original.py  --data_dir  ./data/ILSVRC2012/imagenet-100 --epochs 50 --batch_size 128 > pretrain_original.out 2>&1 &
+nohup python -m torch.distributed.launch --nproc_per_node=3 main_vicreg_original.py  --data_dir  ./data/ILSVRC2012/imagenet-100-samemini --exp_dir ./exp_hub/imagenet-100-samemini --epochs 50 --batch_size 128 > ./stdout/ssl_imagenet-100-samemini.out 2>&1 &

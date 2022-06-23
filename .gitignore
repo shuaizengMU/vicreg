@@ -1,21 +1,10 @@
-exp/*.pth
-exp/*.txt
 
-exp_mnist/*.pth
-exp_mnist/*.txt
-
-cpu_mnist/*.pth
-cpu_mnist/*.txt
-
-exp_imagenet_100/*.pth
-exp_imagenet_100/*.txt
-
-exp_original/*.pth
-exp_original/*.txt
+exp_hub/*/*.pth
+exp_hub/*/*.txt
 
 __pycache__/*.pyc
 
 *.out
 
-
+data
 

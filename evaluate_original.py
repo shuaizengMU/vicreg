@@ -29,9 +29,9 @@ def get_arguments():
     )
 
     # Data
-    parser.add_argument("--data_dir", type=Path, help="path to dataset")
+    parser.add_argument("--data-dir", type=Path, help="path to dataset")
     parser.add_argument(
-        "--train_percent",
+        "--train-percent",
         default=100,
         type=int,
         choices=(100, 10, 1),
@@ -41,14 +41,14 @@ def get_arguments():
     # Checkpoint
     parser.add_argument("--pretrained", type=Path, help="path to pretrained model")
     parser.add_argument(
-        "--exp_dir",
+        "--exp-dir",
         default="./checkpoint/lincls/",
         type=Path,
         metavar="DIR",
         help="path to checkpoint directory",
     )
     parser.add_argument(
-        "--print_freq", default=100, type=int, metavar="N", help="print frequency"
+        "--print-freq", default=100, type=int, metavar="N", help="print frequency"
     )
 
     # Model
@@ -63,24 +63,24 @@ def get_arguments():
         help="number of total epochs to run",
     )
     parser.add_argument(
-        "--batch_size", default=256, type=int, metavar="N", help="mini-batch size"
+        "--batch-size", default=256, type=int, metavar="N", help="mini-batch size"
     )
     parser.add_argument(
-        "--lr_backbone",
+        "--lr-backbone",
         default=0.0,
         type=float,
         metavar="LR",
         help="backbone base learning rate",
     )
     parser.add_argument(
-        "--lr_head",
+        "--lr-head",
         default=0.3,
         type=float,
         metavar="LR",
         help="classifier base learning rate",
     )
     parser.add_argument(
-        "--weight_decay", default=1e-6, type=float, metavar="W", help="weight decay"
+        "--weight-decay", default=1e-6, type=float, metavar="W", help="weight decay"
     )
     parser.add_argument(
         "--weights",
